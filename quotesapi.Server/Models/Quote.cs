@@ -1,7 +1,21 @@
-﻿namespace quotesapi.Server.Models;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
-public class Quote {
-    public int Id { set; get; }
-    public string Text { set; get; }
-    public ICollection<Tag> Tags;
+namespace quotesapi.Server.Models
+{
+    public class Quote
+    {
+        [JsonPropertyName("quoteId")]
+        public int QuoteId { get; set; }
+        [JsonPropertyName("text")]
+        public required string Text { get; set; }
+        [JsonPropertyName("created")]
+        public DateTime Created { get; set; } = DateTime.Now;
+        [JsonIgnore]
+        public ICollection<Tag> Tags { get; set; } = [];
+        [JsonPropertyName("user")]
+        public IdentityUser? User { get; set; }
+        [JsonPropertyName("userId")]
+        public required string UserId { get; set; }
+    }
 }

@@ -1,7 +1,16 @@
-﻿namespace quotesapi.Server.Models;
+﻿using System.Text.Json.Serialization;
 
-public class Tag {
-    public int Id { set; get; }
-    public string Text { set; get; }
-    public ICollection<Quote> Quotes;
+namespace quotesapi.Server.Models
+{
+    public class Tag
+    {
+        [JsonPropertyName("id")]
+        public int TagId { get; set; }
+        [JsonPropertyName("text")]
+        public required string Text { get; set; }
+        [JsonPropertyName("type")]
+        public TagType Type { get; set; }
+        [JsonIgnore]
+        public ICollection<Quote> Quotes { get; set; } = [];
+    }
 }

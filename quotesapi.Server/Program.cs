@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using quotesapi.Server.Data;
 
@@ -9,11 +10,14 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
                                                       options.UseSqlite(
                                                           builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<ApplicationContext>();
 var app = builder.Build();
 
 app.UseDefaultFiles();
@@ -39,6 +43,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
+app.MapIdentityApi<IdentityUser>();
 app.UseAuthorization();
 
 app.MapControllers();
