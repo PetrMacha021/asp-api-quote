@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using quotesapi.Server.Data;
@@ -45,6 +46,22 @@ public class QuotesController : ControllerBase {
         return quote;
     }
 
+
+    [HttpPost("random/text")]
+    public async Task<ActionResult<Quote>> GetRandomQuoteByText(string text) {
+        if (string.IsNullOrEmpty(text)) {
+            return BadRequest("Search string cannot be empty");
+        }
+
+        var quotes = await _context.Quotes.Where(q => q.Text.Contains(text)).ToListAsync();
+
+        if (quotes.Count == 0) {
+            return NotFound();
+        }
+
+        return quotes.Skip(new Random().Next(quotes.Count)).First();
+    }
+
     [HttpPut("{id}")]
     [Authorize]
     public async Task<IActionResult> PutQuote(int id, Quote quote) {
@@ -52,7 +69,8 @@ public class QuotesController : ControllerBase {
             return BadRequest();
         }
 
-        if (quote.UserId != User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value) {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (quote.UserId != userId && userId != "00000000-0000-0000-0000-000000000000") {
             return Forbid();
         }
 
@@ -95,7 +113,8 @@ public class QuotesController : ControllerBase {
             return NotFound();
         }
 
-        if (quote.UserId != User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value) {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (quote.UserId != userId && userId != "00000000-0000-0000-0000-000000000000") {
             return Forbid();
         }
 
@@ -106,14 +125,18 @@ public class QuotesController : ControllerBase {
     }
 
     [HttpPost("text")]
-    public async Task<ActionResult<Quote>> GetQuoteByText(string text) {
-        var quote = await _context.Quotes.FirstOrDefaultAsync(q => q.Text == text);
+    public async Task<ActionResult<List<Quote>>> GetQuoteByText(string text) {
+        if (string.IsNullOrEmpty(text)) {
+            return BadRequest("Search string cannot be empty");
+        }
 
-        if (quote == null) {
+        var quotes = await _context.Quotes.Where(q => q.Text.Contains(text)).ToListAsync();
+
+        if (quotes.Count == 0) {
             return NotFound();
         }
 
-        return quote;
+        return quotes;
     }
 
     [HttpPost("{id}/tags/{tagId}")]
@@ -122,6 +145,11 @@ public class QuotesController : ControllerBase {
         var quote = await _context.Quotes.Include(q => q.Tags).FirstOrDefaultAsync(q => q.QuoteId == id);
         if (quote == null) {
             return NotFound();
+        }
+
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (quote.UserId != userId && userId != "00000000-0000-0000-0000-000000000000") {
+            return Forbid();
         }
 
         var tag = await _context.Tags.FindAsync(tagId);
@@ -141,6 +169,11 @@ public class QuotesController : ControllerBase {
         var quote = await _context.Quotes.Include(q => q.Tags).FirstOrDefaultAsync(q => q.QuoteId == id);
         if (quote == null) {
             return NotFound();
+        }
+
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (quote.UserId != userId && userId != "00000000-0000-0000-0000-000000000000") {
+            return Forbid();
         }
 
         var tag = quote.Tags.FirstOrDefault(t => t.TagId == tagId);

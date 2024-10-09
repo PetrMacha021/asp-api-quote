@@ -18,7 +18,7 @@ public class ApplicationContext : IdentityDbContext<IdentityUser> {
         modelBuilder.Entity<QuoteTag>().HasKey(qt => new { qt.QuoteId, qt.TagId });
         modelBuilder.Entity<IdentityUser>(options => {
             options.HasData(new IdentityUser {
-                Id                 = "7ad2e6a5-700d-4793-96ef-9902dedf12f2",
+                Id                 = "00000000-0000-0000-0000-000000000000",
                 UserName           = "admin",
                 NormalizedUserName = "ADMIN",
                 Email              = "admin@local.test",

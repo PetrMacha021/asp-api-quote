@@ -89,17 +89,6 @@ public class TagsController : ControllerBase {
         return NoContent();
     }
 
-    [HttpPost("text")]
-    public async Task<ActionResult<Tag>> GetTagByText(string text) {
-        var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Text == text);
-
-        if (tag == null) {
-            return NotFound();
-        }
-
-        return tag;
-    }
-
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<Tag>> PostTag(Tag tag) {
