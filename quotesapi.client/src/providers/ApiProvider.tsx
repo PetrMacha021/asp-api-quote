@@ -24,7 +24,7 @@ interface ApiContextType {
   randomQuote: Quote;
   quotes: Quote[];
   isLoggedIn: boolean;
-  addQuote: (quote: Quote) => void;
+  addQuote: (text: string) => void;
   getRandomQuote: () => void;
   getQuotes: () => void;
   removeQuote: (id: string) => void;
@@ -40,8 +40,25 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<LoginData>();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const addQuote = (quote: Quote) => {
-    setQuotes((prevQuotes) => [...prevQuotes, quote]);
+  const addQuote = (text: string) => {
+    let quote: Quote = {
+      created: "", quoteId: 0, userId: "",
+      text: text,
+    }
+
+    fetch("http://localhost:5146/api/Quotes", {
+      method: "POST",
+      body: JSON.stringify(quote),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(async (resp) => {
+      if (!resp.ok) throw new Error(await resp.text());
+      quote = await resp.json() as unknown as Quote;
+      setQuotes((prevQuotes) => [...prevQuotes, quote]);
+    }).catch(err => {
+      throw new Error(err);
+    })
   };
 
   const getRandomQuote = () => {
