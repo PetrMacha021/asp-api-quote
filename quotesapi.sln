@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "quotesapi.Server", "quotesa
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "quotesapi.client", "quotesapi.client\quotesapi.client.esproj", "{0D85F8CD-759A-40AE-93C3-B832C0D1BEAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "quotesapi.scraper", "quotesapi.scraper\quotesapi.scraper.csproj", "{C815D015-A31F-4EF6-B01A-2F1EF6749A46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{0D85F8CD-759A-40AE-93C3-B832C0D1BEAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D85F8CD-759A-40AE-93C3-B832C0D1BEAD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0D85F8CD-759A-40AE-93C3-B832C0D1BEAD}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{C815D015-A31F-4EF6-B01A-2F1EF6749A46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C815D015-A31F-4EF6-B01A-2F1EF6749A46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C815D015-A31F-4EF6-B01A-2F1EF6749A46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C815D015-A31F-4EF6-B01A-2F1EF6749A46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
