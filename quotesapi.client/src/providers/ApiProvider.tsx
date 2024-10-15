@@ -26,13 +26,15 @@ interface ApiContextType {
   isLoggedIn: boolean;
   addQuote: (quote: Quote) => void;
   getRandomQuote: () => void;
+  getQuotes: () => void;
+  removeQuote: (id: string) => void;
   login: (username: string, password: string) => void;
   register: (username: string, password: string) => void;
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
 
-export const ApiProvider = ({children}: { children: ReactNode }) => {
+export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const [randomQuote, setRandomQuote] = useState<Quote>({ created: "", quoteId: 0, text: "", userId: "" });
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [token, setToken] = useState<LoginData>();
@@ -58,11 +60,11 @@ export const ApiProvider = ({children}: { children: ReactNode }) => {
       method: "POST",
       body: JSON.stringify({
         "email": username,
-        "password": password
+        "password": password,
       }),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     }).then(async (resp) => {
       if (!resp.ok) return;
       setToken(await resp.json());
@@ -77,11 +79,11 @@ export const ApiProvider = ({children}: { children: ReactNode }) => {
       method: "POST",
       body: JSON.stringify({
         "email": username,
-        "password": password
+        "password": password,
       }),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     }).then(resp => {
       if (!resp.ok) return;
     }).catch(err => {
@@ -89,12 +91,39 @@ export const ApiProvider = ({children}: { children: ReactNode }) => {
     })
   }
 
+  const getQuotes = () => {
+    if (!token) throw new Error("Not logged in");
+    fetch("http://localhost:5146/api/Quotes/me", {
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async (resp) => await resp.json() as unknown as Quote[])
+      .then(resp => setQuotes(resp))
+      .catch(err => console.error(err));
+  }
+
+  const removeQuote = (id: string) => {
+    if (!token) throw new Error("Not logged in");
+    fetch(`http://localhost:5146/api/Quotes/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async resp => {
+      if (!resp.ok) throw new Error(await resp.text());
+      setQuotes((prevQuotes) => prevQuotes.filter(q => q.quoteId.toString() !== id));
+    }).catch(err => {
+      throw new Error(err);
+    });
+  }
+
   return (
-    <ApiContext.Provider value={{ randomQuote, quotes, isLoggedIn, addQuote, getRandomQuote, login, register }}>
+    <ApiContext.Provider
+      value={{ randomQuote, quotes, isLoggedIn, addQuote, getRandomQuote, getQuotes, removeQuote, login, register }}>
       {children}
     </ApiContext.Provider>
   )
-};
+}
 
 export const useApiContext = () => {
   const context = useContext(ApiContext);

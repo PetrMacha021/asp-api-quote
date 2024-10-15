@@ -3,6 +3,7 @@ import Login from "./components/Login.tsx";
 import {useApiContext} from "./providers/ApiProvider.tsx";
 import Register from "./components/Register.tsx";
 import RandomQuote from "./components/RandomQuote.tsx";
+import Quotes from "./components/Quotes.tsx";
 
 export function App() {
   const context = useApiContext();
@@ -10,11 +11,13 @@ export function App() {
   return (
     <div>
       <RandomQuote/>
-      {!context.isLoggedIn &&
-          <div>
-              <Login/>
-              <Register/>
-          </div>
+      {context.isLoggedIn ?
+        <Quotes/>
+        :
+        <div>
+          <Login/>
+          <Register/>
+        </div>
       }
     </div>
   )

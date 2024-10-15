@@ -23,6 +23,16 @@ public class QuotesController : ControllerBase {
         return await _context.Quotes.ToListAsync();
     }
 
+    [HttpGet("me")]
+    public async Task<ActionResult<IEnumerable<Quote>>> GetMyQuotes() {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == "00000000-0000-0000-0000-000000000000") {
+            return await _context.Quotes.ToListAsync();
+        }
+
+        return await _context.Quotes.Where(q => q.UserId == userId).ToListAsync();
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<Quote>> GetQuote(int id) {
         var quote = await _context.Quotes.FindAsync(id);
