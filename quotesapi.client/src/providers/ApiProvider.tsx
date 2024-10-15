@@ -28,6 +28,7 @@ interface ApiContextType {
   isLoggedIn: boolean;
   addQuote: (text: string) => void;
   addTag: (text: string) => void;
+  addTagToQuote: (quoteId: string, tagId: number) => void;
   getRandomQuote: () => void;
   getQuotes: () => void;
   getTags: () => void;
@@ -110,9 +111,11 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
     let url = "http://localhost:5146/api/Quotes/me";
 
     if (search || searchTag != -1) url += "?";
+
     if (search) url += `text=${search}`;
+
     if (search && searchTag != -1) url += `&tag=${searchTag}`;
-    if (searchTag != -1) url += `tag=${searchTag}`;
+    else if (searchTag != -1) url += `tag=${searchTag}`;
 
     fetch(url, {
       headers: {
@@ -176,9 +179,24 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
     })
   };
 
+  const addTagToQuote = (quoteId: string, tagId: number) => {
+    if (!token) throw new Error("Not logged in");
+
+    fetch(`http://localhost:5146/api/Quotes/${quoteId}/tags/${tagId}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async (resp) => {
+      if (!resp.ok) throw new Error(await resp.text());
+    }).catch(err => {
+      throw new Error(err);
+    });
+  }
+
   const addTag = (text: string) => {
     if (!token) throw new Error("Not logged in");
-    const tag: Tag = {
+    let tag: Tag = {
       id: 0, type: 0,
       text: text,
     }
@@ -188,9 +206,12 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
       body: JSON.stringify(tag),
       headers: {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
+        "Content-Type": "application/json"
       },
     }).then(async (resp) => {
       if (!resp.ok) throw new Error(await resp.text());
+      tag = await resp.json() as unknown as Tag;
+      setTags((prevTag) => [...prevTag, tag]);
     }).catch(err => {
       console.error(err);
     });
@@ -206,6 +227,7 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         isLoggedIn,
         addQuote,
         addTag,
+        addTagToQuote,
         getRandomQuote,
         getQuotes,
         getTags,

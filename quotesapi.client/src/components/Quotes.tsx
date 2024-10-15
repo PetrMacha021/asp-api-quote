@@ -1,5 +1,6 @@
 ﻿import { useApiContext } from "../providers/ApiProvider";
 import { useEffect } from "react";
+import QuoteView from "./QuoteView.tsx";
 
 export default function Quotes() {
   const context = useApiContext();
@@ -20,10 +21,7 @@ export default function Quotes() {
       <button onClick={context.getQuotes}>Refresh quotes</button>
       <ul>
         {context.quotes.map(q => (
-          <li key={q.quoteId}>
-            {q.text}
-            <button onClick={() => context.removeQuote(q.quoteId.toString())}>Remove</button>
-          </li>
+          <QuoteView key={q.quoteId} quote={q} />
         ))}
       </ul>
     </div>
