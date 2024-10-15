@@ -1,22 +1,17 @@
-﻿import {useEffect, useState} from "react";
-import {Quote} from "../App";
+﻿import {useApiContext} from "../providers/ApiProvider.tsx";
+import {useEffect} from "react";
 
 export default function RandomQuote() {
-  const [quote, setQuote] = useState("Loading...");
+  const context = useApiContext();
 
   useEffect(() => {
-    fetch("http://localhost:5146/api/Quotes/random")
-      .then((resp) => resp.json() as unknown as Quote)
-      .then((data) => {
-        setQuote(data.text);
-      })
-      .catch(err => {
-        console.error(err);
-        setQuote("Error");
-      })
-      }, []);
+    context.getRandomQuote();
+  }, []);
 
-    return (
-      <p>Random quote: {quote}</p>
-    )
-  }
+  return (
+    <div>
+      <p>Random quote: {context.randomQuote.text}</p>
+      <button onClick={context.getRandomQuote}>Get a different one</button>
+    </div>
+  )
+}

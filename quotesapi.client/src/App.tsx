@@ -1,21 +1,17 @@
 import './App.css';
 import RandomQuote from "./components/RandomQuote.tsx";
-
-export interface Quote {
-  quoteId: number;
-  text: string;
-  created: string;
-  userId: string;
-}
-
-export interface Tag {
-  id: number;
-  text: string;
-  type: number;
-}
+import Login from "./components/Login.tsx";
+import {useApiContext} from "./providers/ApiProvider.tsx";
 
 export function App() {
+  const context = useApiContext();
+
   return (
-    <RandomQuote />
+    <div>
+      <RandomQuote/>
+      { !context.isLoggedIn &&
+          <Login/>
+      }
+    </div>
   )
 }
