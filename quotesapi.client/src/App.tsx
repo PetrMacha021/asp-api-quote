@@ -1,7 +1,8 @@
 import './App.css';
-import RandomQuote from "./components/RandomQuote.tsx";
 import Login from "./components/Login.tsx";
 import {useApiContext} from "./providers/ApiProvider.tsx";
+import Register from "./components/Register.tsx";
+import RandomQuote from "./components/RandomQuote.tsx";
 
 export function App() {
   const context = useApiContext();
@@ -9,8 +10,11 @@ export function App() {
   return (
     <div>
       <RandomQuote/>
-      { !context.isLoggedIn &&
-          <Login/>
+      {!context.isLoggedIn &&
+          <div>
+              <Login/>
+              <Register/>
+          </div>
       }
     </div>
   )
