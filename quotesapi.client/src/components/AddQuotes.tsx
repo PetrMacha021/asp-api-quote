@@ -7,8 +7,8 @@ export default function AddQuotes() {
 
   return (
     <div>
-      <label htmlFor="label">Quote text:</label>
-      <input id="label" type="text" value={text} onChange={event => setText(event.target.value)} placeholder="Text"/>
+      <label htmlFor="quote">Quote text:</label>
+      <input id="quote" type="text" value={text} onChange={event => setText(event.target.value)} placeholder="Text"/>
       <button type="submit" onClick={() => {
         context.addQuote(text);
       }}>Add Quote</button>

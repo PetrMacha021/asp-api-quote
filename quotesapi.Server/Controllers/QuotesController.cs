@@ -24,12 +24,27 @@ public class QuotesController : ControllerBase {
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<IEnumerable<Quote>>> GetMyQuotes() {
+    public async Task<ActionResult<IEnumerable<Quote>>> GetMyQuotes(string? text, int? tag) {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == "00000000-0000-0000-0000-000000000000") {
+            if (text != null && tag != null)
+                return await _context.Quotes.Where(q => q.Text.Contains(text) && q.Tags.Any(t => t.TagId == tag))
+                                     .ToListAsync();
+            if (text != null) return await _context.Quotes.Where(q => q.Text.Contains(text)).ToListAsync();
+            if (tag != null) return await _context.Quotes.Where(q => q.Tags.Any(t => t.TagId == tag)).ToListAsync();
             return await _context.Quotes.ToListAsync();
         }
 
+        if (text != null && tag != null)
+            return await _context
+                         .Quotes.Where(q => q.Text.Contains(text) && q.Tags.Any(t => t.TagId == tag) &&
+                                            q.UserId == userId)
+                         .ToListAsync();
+        if (text != null)
+            return await _context.Quotes.Where(q => q.Text.Contains(text) && q.UserId == userId).ToListAsync();
+        if (tag != null)
+            return await _context.Quotes.Where(q => q.Tags.Any(t => t.TagId == tag) && q.UserId == userId)
+                                 .ToListAsync();
         return await _context.Quotes.Where(q => q.UserId == userId).ToListAsync();
     }
 
@@ -132,21 +147,6 @@ public class QuotesController : ControllerBase {
         await _context.SaveChangesAsync();
 
         return NoContent();
-    }
-
-    [HttpPost("text")]
-    public async Task<ActionResult<List<Quote>>> GetQuoteByText(string text) {
-        if (string.IsNullOrEmpty(text)) {
-            return BadRequest("Search string cannot be empty");
-        }
-
-        var quotes = await _context.Quotes.Where(q => q.Text.Contains(text)).ToListAsync();
-
-        if (quotes.Count == 0) {
-            return NotFound();
-        }
-
-        return quotes;
     }
 
     [HttpPost("{id}/tags/{tagId}")]

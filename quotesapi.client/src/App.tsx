@@ -5,6 +5,7 @@ import Quotes from "./components/Quotes.tsx";
 import AddQuotes from "./components/AddQuotes.tsx";
 import Login from "./components/Login.tsx";
 import Register from "./components/Register.tsx";
+import AddTag from "./components/AddTag.tsx";
 
 export function App() {
   const context = useApiContext();
@@ -15,6 +16,7 @@ export function App() {
       {context.isLoggedIn ?
         <div>
           <AddQuotes/>
+          <AddTag />
           <Quotes/>
         </div>
         :

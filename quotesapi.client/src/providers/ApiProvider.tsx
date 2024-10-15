@@ -1,4 +1,4 @@
-﻿import { createContext, ReactNode, useContext, useState } from "react";
+﻿import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 export interface Quote {
   quoteId: number;
@@ -23,13 +23,19 @@ export interface LoginData {
 interface ApiContextType {
   randomQuote: Quote;
   quotes: Quote[];
+  tags: Tag[];
+  searchTag: number;
   isLoggedIn: boolean;
   addQuote: (text: string) => void;
+  addTag: (text: string) => void;
   getRandomQuote: () => void;
   getQuotes: () => void;
+  getTags: () => void;
   removeQuote: (id: string) => void;
   login: (username: string, password: string) => void;
   register: (username: string, password: string) => void;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  setSearchTag: React.Dispatch<React.SetStateAction<number>>
 }
 
 const ApiContext = createContext<ApiContextType | undefined>(undefined);
@@ -37,29 +43,20 @@ const ApiContext = createContext<ApiContextType | undefined>(undefined);
 export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const [randomQuote, setRandomQuote] = useState<Quote>({ created: "", quoteId: 0, text: "", userId: "" });
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [token, setToken] = useState<LoginData>();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchTag, setSearchTag] = useState(-1);
 
-  const addQuote = (text: string) => {
-    let quote: Quote = {
-      created: "", quoteId: 0, userId: "",
-      text: text,
-    }
+  useEffect(() => {
+    getTags();
+  }, []);
 
-    fetch("http://localhost:5146/api/Quotes", {
-      method: "POST",
-      body: JSON.stringify(quote),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(async (resp) => {
-      if (!resp.ok) throw new Error(await resp.text());
-      quote = await resp.json() as unknown as Quote;
-      setQuotes((prevQuotes) => [...prevQuotes, quote]);
-    }).catch(err => {
-      throw new Error(err);
-    })
-  };
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    getQuotes();
+  }, [search, searchTag]);
 
   const getRandomQuote = () => {
     fetch("http://localhost:5146/api/Quotes/random")
@@ -110,12 +107,34 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
 
   const getQuotes = () => {
     if (!token) throw new Error("Not logged in");
-    fetch("http://localhost:5146/api/Quotes/me", {
+    let url = "http://localhost:5146/api/Quotes/me";
+
+    if (search || searchTag != -1) url += "?";
+    if (search) url += `text=${search}`;
+    if (search && searchTag != -1) url += `&tag=${searchTag}`;
+    if (searchTag != -1) url += `tag=${searchTag}`;
+
+    fetch(url, {
       headers: {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
       },
-    }).then(async (resp) => await resp.json() as unknown as Quote[])
-      .then(resp => setQuotes(resp))
+    }).then(async (resp) => {
+      if (!resp.ok) throw new Error(await resp.text());
+      return await resp.json() as unknown as Quote[]
+    })
+      .then(resp => {
+        setQuotes(resp)
+      })
+      .catch(err => console.error(err));
+  }
+
+  const getTags = () => {
+    fetch("http://localhost:5146/api/VTags")
+      .then(async (resp) => {
+        if (!resp.ok) throw new Error(await resp.text());
+        return await resp.json() as unknown as Tag[]
+      })
+      .then(resp => setTags(resp))
       .catch(err => console.error(err));
   }
 
@@ -134,9 +153,68 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
     });
   }
 
+  const addQuote = (text: string) => {
+    if (!token) throw new Error("Not logged in");
+    let quote: Quote = {
+      created: "", quoteId: 0, userId: "",
+      text: text,
+    }
+
+    fetch("http://localhost:5146/api/Quotes", {
+      method: "POST",
+      body: JSON.stringify(quote),
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }).then(async (resp) => {
+      if (!resp.ok) throw new Error(await resp.text());
+      quote = await resp.json() as unknown as Quote;
+      setQuotes((prevQuotes) => [...prevQuotes, quote]);
+    }).catch(err => {
+      throw new Error(err);
+    })
+  };
+
+  const addTag = (text: string) => {
+    if (!token) throw new Error("Not logged in");
+    const tag: Tag = {
+      id: 0, type: 0,
+      text: text,
+    }
+
+    fetch("http://localhost:5146/api/VTags", {
+      method: "POST",
+      body: JSON.stringify(tag),
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async (resp) => {
+      if (!resp.ok) throw new Error(await resp.text());
+    }).catch(err => {
+      console.error(err);
+    });
+  }
+
   return (
     <ApiContext.Provider
-      value={{ randomQuote, quotes, isLoggedIn, addQuote, getRandomQuote, getQuotes, removeQuote, login, register }}>
+      value={{
+        randomQuote,
+        quotes,
+        tags,
+        searchTag,
+        isLoggedIn,
+        addQuote,
+        addTag,
+        getRandomQuote,
+        getQuotes,
+        getTags,
+        removeQuote,
+        login,
+        register,
+        setSearch,
+        setSearchTag,
+      }}>
       {children}
     </ApiContext.Provider>
   )
