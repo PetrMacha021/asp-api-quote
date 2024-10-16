@@ -1,7 +1,7 @@
 ﻿import { Quote, useApiContext } from "../providers/ApiProvider";
 import { useState } from "react";
 
-export default function QuoteView({quote}: {quote: Quote}) {
+export default function QuoteView({ quote }: { quote: Quote }) {
   const context = useApiContext();
 
   const [selectedTag, setSelectedTag] = useState<number>(-1);
@@ -16,7 +16,12 @@ export default function QuoteView({quote}: {quote: Quote}) {
           <option key={t.id} value={t.id}>{t.text}</option>
         ))}
       </select>
-      <button onClick={() => selectedTag !== null && context.addTagToQuote(quote.quoteId.toString(), selectedTag)}>Add Tag</button>
+      <button onClick={() => selectedTag !== null && context.addTagToQuote(quote.quoteId.toString(), selectedTag)}>
+        Add Tag
+      </button>
+      <button onClick={() => selectedTag !== null && context.removeTagToQuote(quote.quoteId.toString(), selectedTag)}>
+        Remove Tag
+      </button>
     </li>
   )
 }

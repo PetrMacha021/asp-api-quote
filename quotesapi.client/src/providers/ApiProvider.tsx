@@ -31,6 +31,7 @@ interface ApiContextType {
   addQuote: (text: string) => void;
   addTag: (text: string) => void;
   addTagToQuote: (quoteId: string, tagId: number) => void;
+  removeTagToQuote: (quoteId: string, tagId: number) => void;
   getRandomQuote: () => void;
   getQuotes: () => void;
   getTags: () => void;
@@ -271,6 +272,32 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
     });
   }
 
+  const removeTagToQuote = (quoteId: string, tagId: number) => {
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
+
+    fetch(`http://localhost:5146/api/Quotes/${quoteId}/tags/${tagId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async (resp) => {
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
+      setSuccess("Tag removed from quote");
+    }).catch(err => {
+      console.error(err);
+      setError(err.title);
+    });
+  }
+
   const addTag = (text: string) => {
     setError("");
     setSuccess("");
@@ -322,6 +349,7 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         addQuote,
         addTag,
         addTagToQuote,
+        removeTagToQuote,
         getRandomQuote,
         getQuotes,
         getTags,
