@@ -36,6 +36,7 @@ interface ApiContextType {
   getQuotes: () => void;
   getTags: () => void;
   removeQuote: (id: string) => void;
+  removeTag: (id: string) => void;
   login: (username: string, password: string) => void;
   register: (username: string, password: string) => void;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
@@ -208,6 +209,32 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
     });
   }
 
+  const removeTag = (id: string) => {
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
+    fetch(`http://localhost:5146/api/VTags/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `${token.tokenType} ${token.accessToken}`,
+      },
+    }).then(async resp => {
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return
+      }
+      setTags((prevTags) => prevTags.filter(t => t.id.toString() !== id));
+      setSuccess("Tag removed");
+    }).catch(err => {
+      console.error(err);
+      setError(err.title);
+    });
+  }
+
   const addQuote = (text: string) => {
     setError("");
     setSuccess("");
@@ -354,6 +381,7 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         getQuotes,
         getTags,
         removeQuote,
+        removeTag,
         login,
         register,
         setSearch,

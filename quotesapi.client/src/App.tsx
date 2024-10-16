@@ -6,6 +6,7 @@ import AddQuotes from "./components/AddQuotes.tsx";
 import Login from "./components/Login.tsx";
 import Register from "./components/Register.tsx";
 import AddTag from "./components/AddTag.tsx";
+import RemoveTag from "./components/RemoveTag.tsx";
 
 export function App() {
   const context = useApiContext();
@@ -19,6 +20,7 @@ export function App() {
         <div>
           <AddQuotes/>
           <AddTag />
+          <RemoveTag />
           <Quotes/>
         </div>
         :
