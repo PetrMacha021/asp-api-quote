@@ -24,6 +24,8 @@ interface ApiContextType {
   randomQuote: Quote;
   quotes: Quote[];
   tags: Tag[];
+  error: string;
+  success: string;
   searchTag: number;
   isLoggedIn: boolean;
   addQuote: (text: string) => void;
@@ -49,6 +51,8 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [search, setSearch] = useState("");
   const [searchTag, setSearchTag] = useState(-1);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     getTags();
@@ -60,17 +64,26 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
   }, [search, searchTag]);
 
   const getRandomQuote = () => {
+    setError("");
+    setSuccess("");
     fetch("http://localhost:5146/api/Quotes/random")
-      .then((resp) => resp.json() as unknown as Quote)
-      .then((data) => {
-        setRandomQuote(data);
+      .then(async (resp) => {
+        if (!resp.ok) {
+          const err = await resp.json();
+          setError(err.title);
+          return;
+        }
+        setRandomQuote(await resp.json() as unknown as Quote);
       })
       .catch(err => {
         console.error(err);
+        setError(err.title);
       })
   }
 
   const login = (username: string, password: string) => {
+    setError("");
+    setSuccess("");
     fetch("http://localhost:5146/login", {
       method: "POST",
       body: JSON.stringify({
@@ -81,15 +94,22 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         "Content-Type": "application/json",
       },
     }).then(async (resp) => {
-      if (!resp.ok) return;
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
       setToken(await resp.json());
       setIsLoggedIn(true);
     }).catch(err => {
       console.error(err);
+      setError(err.title);
     });
   }
 
   const register = (username: string, password: string) => {
+    setError("");
+    setSuccess("");
     fetch("http://localhost:5146/register", {
       method: "POST",
       body: JSON.stringify({
@@ -99,15 +119,26 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
       headers: {
         "Content-Type": "application/json",
       },
-    }).then(resp => {
-      if (!resp.ok) return;
+    }).then(async resp => {
+      if (!resp.ok) {
+        const err = await resp.json();
+        console.error(err.title);
+        setError(err.title);
+        return;
+      }
     }).catch(err => {
       console.error(err);
+      setError(err.title);
     })
   }
 
   const getQuotes = () => {
-    if (!token) throw new Error("Not logged in");
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
     let url = "http://localhost:5146/api/Quotes/me";
 
     if (search || searchTag != -1) url += "?";
@@ -122,42 +153,71 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
       },
     }).then(async (resp) => {
-      if (!resp.ok) throw new Error(await resp.text());
-      return await resp.json() as unknown as Quote[]
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
+      setQuotes(await resp.json() as unknown as Quote[]);
     })
-      .then(resp => {
-        setQuotes(resp)
-      })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err)
+        setError(err.title);
+      });
   }
 
   const getTags = () => {
+    setError("");
+    setSuccess("");
     fetch("http://localhost:5146/api/VTags")
       .then(async (resp) => {
-        if (!resp.ok) throw new Error(await resp.text());
-        return await resp.json() as unknown as Tag[]
+        if (!resp.ok) {
+          const err = await resp.json();
+          setError(err.title);
+          return;
+        }
+        setTags(await resp.json() as unknown as Tag[]);
       })
-      .then(resp => setTags(resp))
       .catch(err => console.error(err));
   }
 
   const removeQuote = (id: string) => {
-    if (!token) throw new Error("Not logged in");
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
     fetch(`http://localhost:5146/api/Quotes/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
       },
     }).then(async resp => {
-      if (!resp.ok) throw new Error(await resp.text());
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return
+      }
       setQuotes((prevQuotes) => prevQuotes.filter(q => q.quoteId.toString() !== id));
+      setSuccess("Quote removed");
     }).catch(err => {
-      throw new Error(err);
+      console.error(err);
+      setError(err.title);
     });
   }
 
   const addQuote = (text: string) => {
-    if (!token) throw new Error("Not logged in");
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
+    if (!text) {
+      setError("Quote cannot be empty");
+      return;
+    }
     let quote: Quote = {
       created: "", quoteId: 0, userId: "",
       text: text,
@@ -171,16 +231,27 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         "Content-Type": "application/json",
       },
     }).then(async (resp) => {
-      if (!resp.ok) throw new Error(await resp.text());
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
       quote = await resp.json() as unknown as Quote;
       setQuotes((prevQuotes) => [...prevQuotes, quote]);
+      setSuccess("Quote added");
     }).catch(err => {
-      throw new Error(err);
+      console.error(err);
+      setError(err.title);
     })
   };
 
   const addTagToQuote = (quoteId: string, tagId: number) => {
-    if (!token) throw new Error("Not logged in");
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
 
     fetch(`http://localhost:5146/api/Quotes/${quoteId}/tags/${tagId}`, {
       method: "POST",
@@ -188,14 +259,29 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
       },
     }).then(async (resp) => {
-      if (!resp.ok) throw new Error(await resp.text());
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
+      setSuccess("Tag added to quote");
     }).catch(err => {
-      throw new Error(err);
+      console.error(err);
+      setError(err.title);
     });
   }
 
   const addTag = (text: string) => {
-    if (!token) throw new Error("Not logged in");
+    setError("");
+    setSuccess("");
+    if (!token) {
+      setError("Not logged in");
+      return;
+    }
+    if (!text) {
+      setError("Tag cannot be empty");
+      return;
+    }
     let tag: Tag = {
       id: 0, type: 0,
       text: text,
@@ -206,14 +292,20 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
       body: JSON.stringify(tag),
       headers: {
         "Authorization": `${token.tokenType} ${token.accessToken}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
     }).then(async (resp) => {
-      if (!resp.ok) throw new Error(await resp.text());
+      if (!resp.ok) {
+        const err = await resp.json();
+        setError(err.title);
+        return;
+      }
       tag = await resp.json() as unknown as Tag;
       setTags((prevTag) => [...prevTag, tag]);
+      setSuccess("Tag added");
     }).catch(err => {
       console.error(err);
+      setError(err.title);
     });
   }
 
@@ -223,6 +315,8 @@ export const ApiProvider = ({ children }: { children: ReactNode }) => {
         randomQuote,
         quotes,
         tags,
+        error,
+        success,
         searchTag,
         isLoggedIn,
         addQuote,

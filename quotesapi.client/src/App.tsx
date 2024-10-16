@@ -13,6 +13,8 @@ export function App() {
   return (
     <div>
       <RandomQuote/>
+      {context.error && <p className={"error"}>{context.error}</p>}
+      {context.success && <p className={"success"}>{context.success}</p>}
       {context.isLoggedIn ?
         <div>
           <AddQuotes/>

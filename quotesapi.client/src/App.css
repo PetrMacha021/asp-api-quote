@@ -17,3 +17,11 @@ th, td {
     padding-left: 1rem;
     padding-right: 1rem;
 }
+
+.error {
+    color: red;
+}
+
+.success {
+    color: green;
+}
